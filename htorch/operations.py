@@ -37,7 +37,10 @@ def norm(x):
 
 def project_hyp_vecs(x, c=C):
     normed = norm(x)
-    desired = th.clamp(normed, 0, 1.0 - PROJ_EPS / np.sqrt(c))
+    #print(normed)
+    #print(1.0 - PROJ_EPS / np.sqrt(c))
+    bound = 0.99999 #1.0 - PROJ_EPS / np.sqrt(c)
+    desired = th.clamp(normed, 0, bound)
     y = x * (desired / (EPS + normed))
     return y
 
@@ -110,30 +113,53 @@ def log_map_x(x, v, c=C):
     return (f1 * f2 * f3)
 
 
-def exp_map_zero(v, c):
+def exp_map_zero(v, c=C):
     v = v + EPS # Perturbe v to avoid dealing with v = 0
     norm_v = norm(v)
     result = tanh(th.tensor(np.sqrt(c) * norm_v)) / (np.sqrt(c) * norm_v) * v
     return project_hyp_vecs(result, c)
 
-def log_map_zero(y, c):
+def log_map_zero(y, c=C):
     diff = y + EPS
     norm_diff = norm(diff)
     return 1. / np.sqrt(c) * atanh(np.sqrt(c) * norm_diff) / norm_diff * diff
 
 
-def mat_mult(M, x, c):
+def mat_mult(M, x, c=C):
     x = x + EPS
-    Mx = th.matmul(M, x) + EPS
+    #print('M is ', M)
+    #print('x is ', x)
+    Mx = x @ M
+    #th.matmul(M, x)
+        #th.matmul(M, x) + EPS
     MX_norm = norm(Mx)
     x_norm = norm(x)
-    result = 1. / np.sqrt(c) * tanh(MX_norm / x_norm * atanh(np.sqrt(c) * x_norm)) / MX_norm * Mx
+
+    #print(Mx)
+
+    print('Mx norm2 ', MX_norm)
+    print('x norm2', x_norm)
+
+    a1 = MX_norm / x_norm
+    a2 = atanh(np.sqrt(c) * x_norm)
+
+    a = tanh(a1 * a2)
+    b = 1. / np.sqrt(c)
+    c = a / MX_norm
+
+    # print(a)
+    # print(b)
+    # print(c)
+    # print(Mx)
+
+    result = b * c * Mx
+    #print(result)
     return project_hyp_vecs(result, c)
 
 
 
 # x is hyperbolic, u is Euclidean. Computes diag(u) \otimes x.
-def mob_pointwise_prod(x, u, c):
+def mob_pointwise_prod(x, u, c=C):
     x = x + EPS
     Mx = x * u + EPS
     MX_norm = norm(Mx)

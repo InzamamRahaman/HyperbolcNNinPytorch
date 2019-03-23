@@ -61,11 +61,30 @@ def n_log_map_x(x, y, c):
 
 
 #########################
+# def mob_mat_mul(M, x, c):
+#     Mx = x @ M
+#     MX_norm = LA.norm(Mx)
+#     x_norm = LA.norm(x)
+#     print('Mx norm1: ',MX_norm)
+#     print('x norm ', x_norm)
+#     return 1. / np.sqrt(c) * np.tanh(MX_norm / x_norm * np.arctanh(np.sqrt(c) * x_norm)) / MX_norm * Mx
+
 def mob_mat_mul(M, x, c):
-    Mx = M.dot(x)
-    MX_norm = LA.norm(Mx)
-    x_norm = LA.norm(x)
-    return 1. / np.sqrt(c) * np.tanh(MX_norm / x_norm * np.arctanh(np.sqrt(c) * x_norm)) / MX_norm * Mx
+    Mx = x @ M
+    MX_norm = LA.norm(Mx.T, axis=0)
+    x_norm = LA.norm(x.T, axis=0)
+    # print('Mx: ', Mx)
+    # print('Mx norm1: ',MX_norm)
+    # print('x norm ', x_norm)
+    sqrt_recip = 1. / np.sqrt(c)
+    norm_factor = MX_norm / x_norm
+    # print('Norm factor: ', norm_factor)
+    inner1 = np.tanh(norm_factor * np.arctanh(np.sqrt(c) * x_norm)) / MX_norm
+    inner2 = sqrt_recip * inner1
+    inner2 = inner2.reshape(-1, 1)
+    # print('inner2: ', inner2)
+    # print('Mx: ', Mx)
+    return  inner2 * Mx
 
 
 # x is hyperbolic, u is Euclidean. Computes diag(u) \otimes x.

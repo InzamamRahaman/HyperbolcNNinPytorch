@@ -146,13 +146,13 @@ def exp_map_test():
     inner1 = log_map_x(x, inner, c)
     inner2 = inner1 - v
     normed_inner2 = norm(inner2)
-    print(normed_inner2)
+    #print(normed_inner2)
     assert norm(inner2) < 1e-5
 
     r = np_random.random() * 10
     assert norm(exp_map_x(0, r * log_map_x(0, x, c), c) - scalar_mult(r, x, c)) < 1e-8
 
-    print('Test exp map passed!')
+    #print('Test exp map passed!')
 
 def mobius_mat_mul_test():
     M = np.random.rand(5, 8)
@@ -176,7 +176,7 @@ def mobius_mat_mul_test():
 
     print('Mobius mat mul test passed!')
 
-def get_numpy_values(v1, v2, r, M):
+def get_numpy_values(v1, v2, v3, r, M):
     res = {
         'distance': poinc_dist_sq(v1, v2, 1),
         'add': mob_add(v1, v2, 1),
@@ -185,11 +185,13 @@ def get_numpy_values(v1, v2, r, M):
         'exp_map_x': n_exp_map_x(v1, v2, 1),
         'log_map_x': n_log_map_x(v1, v2, 1),
         'lambda': n_lambda_x(v1, 1),
-        'matmul': mob_mat_mul(M, v1, 1)
+        'matmul1': mob_mat_mul(M, v1, 1),
+        'matmul2': mob_mat_mul(M, v2, 1),
+        'matmul3': mob_mat_mul(M, v3, 1),
     }
     return res
 
-def get_th_values(v1, v2, r, M):
+def get_th_values(v1, v2, v3, r, M):
     res = {
         'distance': distance_squared(v1, v2, 1),
         'add': add(v1, v2, 1),
@@ -198,7 +200,9 @@ def get_th_values(v1, v2, r, M):
         'exp_map_x': exp_map_x(v1, v2, 1),
         'log_map_x': log_map_x(v1, v2, 1),
         'lambda': lambda_x(v1, 1),
-        'matmul': mat_mult(M, v1.transpose(-1, 0), 1)
+        'matmul1': mat_mult(M, v1, 1),
+        'matmul2': mat_mult(M, v2, 1),
+        #'matmul3': mat_mult(M, v3, 1),
     }
     return res
 
@@ -210,17 +214,30 @@ def run():
     r = np_random.random() * 10
     v1 = np_random.uniform(-0.5, 0.5, emb_dim).astype(np.float32)
     v2 = np_random.uniform(-0.5, 0.5, emb_dim).astype(np.float32)
+    v3 = np_random.uniform(-0.5, 0.5, (10, emb_dim)).astype(np.float32)
     v1 = v1 * 0.59999 / LA.norm(v1)
     v2 = v2 * 0.99 / LA.norm(v2)
-    M = np.random.rand(5, emb_dim).astype(np.float32)
-    numpy_vers = get_numpy_values(v1, v2, r, M)
-    print(numpy_vers)
+    v3 = np.stack((v1, v2))
+    M = np.random.rand(emb_dim, 5).astype(np.float32)
+    numpy_vers = get_numpy_values(v1, v2, v3, r, M)
+    #print(numpy_vers)
 
     v1 = th.tensor(v1)
     v2 = th.tensor(v2)
+    v3 = th.tensor(v3)
     M = th.tensor(M)
-    th_vers = get_th_values(v1, v2, r, M)
-    print(th_vers)
+    th_vers = get_th_values(v1, v2, v3, r, M)
+    #print(th_vers)
+
+    print('Printing Distances!!!!')
+    for operation_name, val1 in numpy_vers.items():
+        if 'matmul' in operation_name:
+            print(val1)
+            print(val2)
+        val2 = th_vers[operation_name]
+        diff = np.sum(np.abs(val1 - val2.numpy()))
+        print('Component wise differences for ', operation_name, ' is ', diff)
+        
 
 
 

@@ -3,6 +3,6 @@ import rsgd
 
 
 
-class LinearModel(object):
-    def __init__(self, n_in, n_out, bias=False):
-        self.esimator = nn.
+# class LinearModel(object):
+#     def __init__(self, n_in, n_out, bias=False):
+#         self.esimator = nn.
