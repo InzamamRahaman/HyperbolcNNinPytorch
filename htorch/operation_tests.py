@@ -202,7 +202,7 @@ def get_th_values(v1, v2, v3, r, M):
         'lambda': lambda_x(v1, 1),
         'matmul1': mat_mult(M, v1, 1),
         'matmul2': mat_mult(M, v2, 1),
-        #'matmul3': mat_mult(M, v3, 1),
+        'matmul3': mat_mult(M, v3, 1),
     }
     return res
 
@@ -231,7 +231,7 @@ def run():
 
     print('Printing Distances!!!!')
     for operation_name, val1 in numpy_vers.items():
-        if 'matmul' in operation_name:
+        if 'matmul' in operation_name and False:
             print(val1)
             print(val2)
         val2 = th_vers[operation_name]

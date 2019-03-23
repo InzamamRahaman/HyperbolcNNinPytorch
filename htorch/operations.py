@@ -31,8 +31,8 @@ def dot(x, y):
     product = x * y
     return th.sum(product, dim=0, keepdim=True)
 
-def norm(x):
-    return th.norm(x, dim=0, keepdim=True)
+def norm(x, dim=0):
+    return th.norm(x, dim=dim, keepdim=True)
 
 
 def project_hyp_vecs(x, c=C):
@@ -125,35 +125,55 @@ def log_map_zero(y, c=C):
     return 1. / np.sqrt(c) * atanh(np.sqrt(c) * norm_diff) / norm_diff * diff
 
 
+# def mat_mult(M, x, c=C):
+#     x = x + EPS
+#     #print('M is ', M)
+#     #print('x is ', x)
+#     Mx = x @ M
+#     #th.matmul(M, x)
+#         #th.matmul(M, x) + EPS
+#     MX_norm = norm(Mx)
+#     x_norm = norm(x)
+
+#     #print(Mx)
+
+#     print('Mx norm2 ', MX_norm)
+#     print('x norm2', x_norm)
+
+#     a1 = MX_norm / x_norm
+#     a2 = atanh(np.sqrt(c) * x_norm)
+
+#     a = tanh(a1 * a2)
+#     b = 1. / np.sqrt(c)
+#     c = a / MX_norm
+
+#     # print(a)
+#     # print(b)
+#     # print(c)
+#     # print(Mx)
+
+#     result = b * c * Mx
+#     #print(result)
+#     return project_hyp_vecs(result, c)
+
 def mat_mult(M, x, c=C):
     x = x + EPS
-    #print('M is ', M)
-    #print('x is ', x)
     Mx = x @ M
-    #th.matmul(M, x)
-        #th.matmul(M, x) + EPS
-    MX_norm = norm(Mx)
-    x_norm = norm(x)
-
+    MX_norm = norm(th.transpose(Mx, -1, 0), dim=0)
+    x_norm = norm(th.transpose(x, -1, 0), dim=0)
     #print(Mx)
-
-    print('Mx norm2 ', MX_norm)
-    print('x norm2', x_norm)
-
-    a1 = MX_norm / x_norm
-    a2 = atanh(np.sqrt(c) * x_norm)
-
-    a = tanh(a1 * a2)
-    b = 1. / np.sqrt(c)
-    c = a / MX_norm
-
-    # print(a)
-    # print(b)
-    # print(c)
-    # print(Mx)
-
-    result = b * c * Mx
-    #print(result)
+    #print('Mx: ', Mx)
+    #print('Mx norm1: ',MX_norm)
+    #print('x norm ', x_norm)
+    sqrt_recip = 1. / np.sqrt(c)
+    norm_factor = MX_norm / x_norm
+    #print('Norm factor: ', norm_factor)
+    inner1 = tanh(norm_factor * atanh(np.sqrt(c) * x_norm)) / MX_norm
+    inner2 = sqrt_recip * inner1
+    inner2 = inner2.view(-1, 1)
+    #print('inner2: ', inner2)
+    #print('Mx: ', Mx)
+    result =  inner2 * Mx
     return project_hyp_vecs(result, c)
 
 
