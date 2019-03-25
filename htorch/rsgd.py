@@ -1,4 +1,5 @@
 from torch.optim.optimizer import Optimizer, required
+import operations
 
 
 class RSGD(Optimizer):
@@ -31,4 +32,9 @@ class RSGD(Optimizer):
         return loss
 
 
+def get_hyperbolic_optimizer(params, lr):
+    rgrad = operations.riemannian_gradient_c
+    exp_map = operations.exp_map_x
+    optimizer = RSGD(params, lr=lr, rgrad=rgrad, exp_map=exp_map)
+    return optimizer
 
